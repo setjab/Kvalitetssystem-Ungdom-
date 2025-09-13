@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kvalitetssystem-Ungdom Utviklet av Settar Al-Jabri</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #333; }
+    header { background: #004aad; color: white; padding: 15px; text-align: center; font-size: 20px; }
+    nav { display: flex; background: #0066cc; }
+    nav button { flex: 1; padding: 15px; border: none; background: #0066cc; color: white; font-size: 16px; cursor: pointer; }
+    nav button.active { background: #004aad; font-weight: bold; }
+    section { display: none; padding: 20px; }
+    section.active { display: block; }
+    .question { margin-bottom: 15px; padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .green { background: #28a745; color: white; }
+    .red { background: #dc3545; color: white; }
+    .yellow { background: #ffc107; color: black; }
+    button.save-btn, button.export-btn { padding: 10px 15px; background: #28a745; border: none; color: white; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+    button.export-btn { background: #17a2b8; }
+    .user-input { margin-bottom: 20px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <header>Kvalitetssystem-Ungdom Utviklet av Settar Al-Jabri</header>
+
+  <nav>
+    <button class="tab-btn active" onclick="showTab(event,'register')">Registrering</button>
+    <button class="tab-btn" onclick="showTab(event,'dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="showTab(event,'export')">Eksport</button>
+  </nav>
+
+  <!-- Registrering -->
+  <section id="register" class="active">
+    <h2>Registrering av svar</h2>
+    <form id="answerForm" onsubmit="event.preventDefault(); saveData();">
+      <div class="user-input">
+        <label><strong>Brukernavn / ID:</strong></label><br>
+        <input type="text" id="username" placeholder="Skriv inn brukernavn eller ID" style="width: 80%; margin-top: 5px;">
+      </div>
+      <div id="questions"></div>
+      <button type="submit" class="save-btn">Lagre</button>
+    </form>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboard">
+    <h2>Dashboard – Trafikklysoversikt</h2>
+    <div id="userDisplay"></div>
+    <canvas id="resultChart"></canvas>
+  </section>
+
+  <!-- Eksport -->
+  <section id="export">
+    <h2>Eksport av resultater</h2>
+    <button class="export-btn" onclick="exportCSV()">Last ned som CSV</button>
+    <pre id="csvPreview"></pre>
+  </section>
+
+<script>
+const questions = [
+  "Har du blitt tilstrekkelig kjent med personen for å forstå behovet?",
+  "Har vi snakket om hindringer og behov for hjelp?",
+  "Har vi snakket om jobbmuligheter?",
+  "Hvordan vurderes kvaliteten i oppfølgingsvedtaket?",
+  "Er jobb/aktivitet et tydelig tema i samtalene?",
+  "Har ungdommen fått veiledning om jobbmål?",
+  "Er det konkrete arbeidsrettede aktiviteter i planen?",
+  "Er oppfølging og oppfølgingspunkter avtalt?",
+  "Har jeg vurdert tilrettelegging, kvalifisering og samarbeid med andre?",
+  "Har det vært dialog med arbeidsgiver/bedrift?",
+  "Har vi evaluert aktivitetene underveis?",
+  "Har ungdommen vært forberedt og involvert i møtene?",
+  "Brukes aktivitetsplanen som et aktivt verktøy?",
+  "Er avtaler tydelige (hvem gjør hva)?",
+  "Er ungdommens ønsker og behov ivaretatt?",
+  "Har ungdommen fått informasjon om målet med oppfølgingen?",
+  "Har ungdommen fått medvirke i valg av tiltak/aktivitet?",
+  "Har vi hatt fysiske møter når nødvendig?",
+  "Har ungdommen fått informasjon om ungdomsgarantien?",
+  "Ved veilederbytte – ble det sikret god overgang?",
+  "Har vi gitt rask og målrettet oppfølging mot jobb/utdanning?"
+];
+
+let answers = [];
+let resultChart = null;
+
+function renderQuestions() {
+  const container = document.getElementById('questions');
+  container.innerHTML = '';
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'question';
+    div.innerHTML = `
+      <p><strong>${i+1}. ${q}</strong></p>
+      <label><input type="radio" name="q${i}" value="Ja"> Ja</label>
+      <label><input type="radio" name="q${i}" value="Nei"> Nei</label>
+      <label><input type="radio" name="q${i}" value="Usikker"> Usikker</label>
+      <br>
+      <input type="text" placeholder="Kommentar" id="comment${i}" style="width: 80%; margin-top: 5px;">
+    `;
+    container.appendChild(div);
+  });
+}
+
+function saveData() {
+  const username = document.getElementById('username').value || 'Ukjent bruker';
+  answers = [];
+  questions.forEach((q, i) => {
+    const radios = document.getElementsByName('q' + i);
+    let selected = '';
+    radios.forEach(r => { if (r.checked) selected = r.value });
+    const comment = document.getElementById('comment' + i).value;
+    answers.push({user: username, question: q, answer: selected, comment: comment});
+  });
+  document.getElementById('userDisplay').textContent = "Svar for: " + username;
+  updateChart();
+  alert("Svar lagret for " + username);
+}
+
+function updateChart() {
+  const counts = {Ja:0, Nei:0, Usikker:0};
+  answers.forEach(a => {
+    if (a.answer) counts[a.answer]++;
+  });
+
+  const ctx = document.getElementById('resultChart').getContext('2d');
+  if (resultChart) {
+    resultChart.destroy();
+  }
+  resultChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Ja (Grønn)', 'Nei (Rød)', 'Usikker (Gul)'],
+      datasets: [{
+        data: [counts.Ja, counts.Nei, counts.Usikker],
+        backgroundColor: ['#28a745','#dc3545','#ffc107']
+      }]
+    },
+    options: {responsive:true, plugins:{legend:{display:false}}}
+  });
+}
+
+function exportCSV() {
+  let csv = 'Bruker,Spørsmål,Svar,Kommentar\n';
+  answers.forEach(a => {
+    csv += `${a.user},${a.question},${a.answer},${a.comment}\n`;
+  });
+  document.getElementById('csvPreview').textContent = csv;
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'kvalitetssystem.csv';
+  link.click();
+}
+
+function showTab(evt, tab) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  evt.target.classList.add('active');
+}
+
+renderQuestions();
+</script>
+
+</body>
+</html>
