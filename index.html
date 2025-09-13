@@ -20,6 +20,7 @@
     button.save-btn, button.export-btn { padding: 10px 15px; background: #28a745; border: none; color: white; border-radius: 5px; cursor: pointer; margin-top: 20px; }
     button.export-btn { background: #17a2b8; }
     .user-input { margin-bottom: 20px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .block-summary { margin-top:20px; padding:15px; background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
@@ -49,6 +50,7 @@
     <h2>Dashboard – Trafikklysoversikt</h2>
     <div id="userDisplay"></div>
     <canvas id="resultChart"></canvas>
+    <div id="blockSummary" class="block-summary"></div>
   </section>
 
   <!-- Eksport -->
@@ -82,6 +84,14 @@ const questions = [
   "Ved veilederbytte – ble det sikret god overgang?",
   "Har vi gitt rask og målrettet oppfølging mot jobb/utdanning?"
 ];
+
+// Definer blokker (Del 1-4)
+const blocks = {
+  "Bli kjent": [0,1,2,3],
+  "Arbeidsretting": [4,5,6,7,8,9,10],
+  "Brukermedvirkning": [11,12,13,14,15,16,17],
+  "Ungdomsgaranti": [18,19,20]
+};
 
 let answers = [];
 let resultChart = null;
@@ -140,6 +150,26 @@ function updateChart() {
     },
     options: {responsive:true, plugins:{legend:{display:false}}}
   });
+
+  // Lag oppsummering per blokk
+  let summaryHtml = "<h3>Oppsummering per bolk</h3>";
+  for (const [block, indices] of Object.entries(blocks)) {
+    let ja=0, nei=0, usikker=0;
+    indices.forEach(i => {
+      const a = answers[i];
+      if (a) {
+        if (a.answer === 'Ja') ja++;
+        if (a.answer === 'Nei') nei++;
+        if (a.answer === 'Usikker') usikker++;
+      }
+    });
+    let status = '–';
+    if (ja >= nei && ja >= usikker) status = '<span class="green">Grønn</span>';
+    else if (nei >= ja && nei >= usikker) status = '<span class="red">Rød</span>';
+    else status = '<span class="yellow">Gul</span>';
+    summaryHtml += `<p><strong>${block}:</strong> ${status} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+  }
+  document.getElementById('blockSummary').innerHTML = summaryHtml;
 }
 
 function exportCSV() {
