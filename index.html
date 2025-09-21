@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kvalitetssystem-Ungdom Utviklet av Settar Al-Jabri</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kvalitetssystem – Ungdom (Settar Al-Jabri)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #333; }
-    header { background: #004aad; color: white; padding: 15px; text-align: center; font-size: 20px; }
+    header { background: #004aad; color: #fff; padding: 16px; text-align: center; font-size: 20px; }
     nav { display: flex; background: #0066cc; }
-    nav button { flex: 1; padding: 15px; border: none; background: #0066cc; color: white; font-size: 16px; cursor: pointer; }
+    nav button { flex: 1; padding: 14px; border: none; background: #0066cc; color: #fff; font-size: 16px; cursor: pointer; }
     nav button.active { background: #004aad; font-weight: bold; }
     section { display: none; padding: 20px; }
     section.active { display: block; }
-    .question { margin-bottom: 15px; padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .green { background: #28a745; color: white; }
-    .red { background: #dc3545; color: white; }
-    .yellow { background: #ffc107; color: black; }
-    button.save-btn, button.export-btn { padding: 10px 15px; background: #28a745; border: none; color: white; border-radius: 5px; cursor: pointer; margin-top: 20px; }
-    button.export-btn { background: #17a2b8; }
-    .user-input { margin-bottom: 20px; padding: 10px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .block-summary { margin-top:20px; padding:15px; background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .question { margin-bottom: 14px; padding: 12px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
+    .green { background: #28a745; color: #fff; padding: 2px 8px; border-radius: 12px; }
+    .red { background: #dc3545; color: #fff; padding: 2px 8px; border-radius: 12px; }
+    .yellow { background: #ffc107; color: #111; padding: 2px 8px; border-radius: 12px; }
+    .save-btn, .export-btn { padding: 10px 14px; background: #28a745; border: none; color: #fff; border-radius: 6px; cursor: pointer; margin-top: 16px; }
+    .export-btn { background: #17a2b8; }
+    .user-input { margin-bottom: 18px; padding: 12px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
+    .block-summary { margin-top: 18px; padding: 14px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
+    .hint { font-size: 12px; color: #666; }
   </style>
 </head>
 <body>
-  <header>Kvalitetssystem-Ungdom Utviklet av Settar Al-Jabri</header>
+  <header>Kvalitetssystem – Ungdom (Utviklet av Settar Al-Jabri)</header>
 
   <nav>
     <button class="tab-btn active" onclick="showTab(event,'register')">Registrering</button>
@@ -37,8 +38,9 @@
     <h2>Registrering av svar</h2>
     <form id="answerForm" onsubmit="event.preventDefault(); saveData();">
       <div class="user-input">
-        <label><strong>Brukernavn / ID:</strong></label><br>
-        <input type="text" id="username" placeholder="Skriv inn brukernavn eller ID" style="width: 80%; margin-top: 5px;">
+        <label><strong>Brukernavn / ID</strong></label><br/>
+        <input type="text" id="username" placeholder="Skriv inn brukernavn eller ID" style="width: 80%; margin-top: 6px;" />
+        <div class="hint">Tips: Bruk fast ID (f.eks. fødselsdato/kode) hvis du vil matche svar i regneark senere.</div>
       </div>
       <div id="questions"></div>
       <button type="submit" class="save-btn">Lagre</button>
@@ -49,7 +51,7 @@
   <section id="dashboard">
     <h2>Dashboard – Trafikklysoversikt</h2>
     <div id="userDisplay"></div>
-    <canvas id="resultChart"></canvas>
+    <canvas id="resultChart" aria-label="Oppsummering Ja/Nei/Usikker" role="img"></canvas>
     <div id="blockSummary" class="block-summary"></div>
   </section>
 
@@ -61,36 +63,65 @@
   </section>
 
 <script>
+/* === Spørsmål i korrekt rekkefølge (36 stk) === */
+// Del 1: Bli kjent og forstå behov (8)
 const questions = [
-  "Har du blitt tilstrekkelig kjent med personen for å forstå behovet?",
-  "Har vi snakket om hindringer og behov for hjelp?",
-  "Har vi snakket om jobbmuligheter?",
-  "Hvordan vurderes kvaliteten i oppfølgingsvedtaket?",
-  "Er jobb/aktivitet et tydelig tema i samtalene?",
-  "Har ungdommen fått veiledning om jobbmål?",
-  "Er det konkrete arbeidsrettede aktiviteter i planen?",
-  "Er oppfølging og oppfølgingspunkter avtalt?",
-  "Har jeg vurdert tilrettelegging, kvalifisering og samarbeid med andre?",
-  "Har det vært dialog med arbeidsgiver/bedrift?",
-  "Har vi evaluert aktivitetene underveis?",
-  "Har ungdommen vært forberedt og involvert i møtene?",
-  "Brukes aktivitetsplanen som et aktivt verktøy?",
-  "Er avtaler tydelige (hvem gjør hva)?",
-  "Er ungdommens ønsker og behov ivaretatt?",
-  "Har ungdommen fått informasjon om målet med oppfølgingen?",
-  "Har ungdommen fått medvirke i valg av tiltak/aktivitet?",
-  "Har vi hatt fysiske møter når nødvendig?",
-  "Har ungdommen fått informasjon om ungdomsgarantien?",
-  "Ved veilederbytte – ble det sikret god overgang?",
-  "Har vi gitt rask og målrettet oppfølging mot jobb/utdanning?"
+  // 1. Bli kjent og forstå behov
+  "Har du blitt tilstrekkelig kjent med personen for å forstå behovet for oppfølging fremover?",
+  "Hvis brukeren har oppgitt hindringer eller behov for hjelp og veiledning, har du hatt en samtale?",
+  "Har samtalen handlet om brukerens jobbmuligheter?",
+  "Hvordan er kvaliteten i oppfølgingsvedtaket?",
+  "— Inneholder begrunnelsen vurdering av brukerens ønsker, ressurser og forutsetninger?",
+  "— Inneholder begrunnelsen vurdering av personens jobbmuligheter (nå eller på sikt)?",
+  "— Inneholder begrunnelsen vurdering av personens muligheter opp mot bransjer og/eller yrker?",
+  "— Inneholder begrunnelsen vurdering av hvilken hjelp og støtte som trengs (veiledning, aktiviteter, tiltak)?",
+
+  // 2. Arbeidsretting og fremdrift (15)
+  "Er det en tydelig arbeidsretting i samhandlingen med brukeren?",
+  "— Har personen fått veiledning knyttet til jobbmål?",
+  "— Har arbeid og aktivitet vært sentrale tema i brukermøtene og i dialogen?",
+  "— Har brukeren arbeidsrettede aktiviteter i planen sin, og er oppfølging under gjennomføring avtalt?",
+  "— Har det vært tydelige avtalte oppfølgingspunkter underveis?",
+  "Har du vurdert hvilken hjelp og støtte som kan bidra til at brukeren kan være i jobb?",
+  "— Har du sammen med brukeren vurdert behov/muligheter for tilrettelegging på arbeidsplassen?",
+  "— Har du sammen med brukeren vurdert om kvalifisering eller opplæringstiltak kan øke mulighetene?",
+  "— Har du sammen med brukeren vurdert om dere bør samarbeide med andre personer/enheter?",
+  "Har det vært samhandling med arbeidsgiver(e) eller arbeidsplass(er) i oppfølgingsløpet for å støtte brukeren med å beholde eller skaffe arbeid?",
+  "— Hvis brukeren er i tiltak/har arbeidsgiver: Er arbeidsgiver en del av oppfølgingen – og på hvilken måte?",
+  "— Har du vurdert lønnstilskudd, mentor eller andre støttetiltak opp mot arbeidsgiver?",
+  "Har oppfølgingen blitt evaluert underveis?",
+  "— Har aktivitetene blitt fulgt opp og evaluert sammen med brukeren?",
+  "— Har brukerens mål eller situasjon endret seg, og hvis ja: ble det fattet nytt oppfølgingsvedtak?",
+
+  // 3. Brukerens medvirkning (10)
+  "Har brukermøtene vært planlagte og forberedte?",
+  "— Er møteagenda delt med brukeren i forkant slik at han/hun kan komme med innspill?",
+  "— Brukes aktivitetsplanen som et samhandlingsverktøy i oppfølgingen?",
+  "— Har du vurdert om personen kan/vil være digital underveis, og har du tilpasset samhandlingen?",
+  "— Inneholder samtalereferatene tydelige avtaler om hvem som skal gjøre hva til neste møte?",
+  "Har brukeren fått medvirke i hvordan dere skal samarbeide i oppfølgingen?",
+  "— Blir personens ønsker og behov ivaretatt?",
+  "— Har brukeren fått informasjon om målet med oppfølgingen og samarbeidet med veileder/Nav?",
+  "— Er det gjennomført fysiske møter når det er nødvendig og/eller brukeren ønsker det?",
+  "— Har brukeren medvirket i valg av tiltak/aktivitet?",
+
+  // 4. Ungdomsgarantien (3)
+  "Har den unge fått informasjon om ungdomsgarantien? (Beskriv kort i kommentar)",
+  "Har den unge hatt brudd i oppfølgingen/veilederbytte? (Hvis ja, beskriv overgang til ny kontaktperson i kommentar)",
+  "Er det jobbet med å gi den unge raskt målrettede aktiviteter mot arbeid og/eller utdanning? (Beskriv kort i kommentar)"
 ];
 
-// Definer blokker (Del 1-4)
+/* === Blokk-indekser (0-basert) ===
+   Del 1: 0–7
+   Del 2: 8–22
+   Del 3: 23–32
+   Del 4: 33–35
+*/
 const blocks = {
-  "Bli kjent": [0,1,2,3],
-  "Arbeidsretting": [4,5,6,7,8,9,10],
-  "Brukermedvirkning": [11,12,13,14,15,16,17],
-  "Ungdomsgaranti": [18,19,20]
+  "Bli kjent og forstå behov": Array.from({length: 8}, (_,i) => i),                // 0–7
+  "Arbeidsretting og fremdrift": Array.from({length: 15}, (_,i) => i + 8),         // 8–22
+  "Brukermedvirkning": Array.from({length: 10}, (_,i) => i + 23),                  // 23–32
+  "Ungdomsgaranti (U30)": Array.from({length: 3}, (_,i) => i + 33)                 // 33–35
 };
 
 let answers = [];
@@ -107,8 +138,8 @@ function renderQuestions() {
       <label><input type="radio" name="q${i}" value="Ja"> Ja</label>
       <label><input type="radio" name="q${i}" value="Nei"> Nei</label>
       <label><input type="radio" name="q${i}" value="Usikker"> Usikker</label>
-      <br>
-      <input type="text" placeholder="Kommentar" id="comment${i}" style="width: 80%; margin-top: 5px;">
+      <br/>
+      <input type="text" placeholder="Kommentar" id="comment${i}" style="width: 80%; margin-top: 6px;" />
     `;
     container.appendChild(div);
   });
@@ -120,9 +151,9 @@ function saveData() {
   questions.forEach((q, i) => {
     const radios = document.getElementsByName('q' + i);
     let selected = '';
-    radios.forEach(r => { if (r.checked) selected = r.value });
-    const comment = document.getElementById('comment' + i).value;
-    answers.push({user: username, question: q, answer: selected, comment: comment});
+    radios.forEach(r => { if (r.checked) selected = r.value; });
+    const comment = document.getElementById('comment' + i).value || '';
+    answers.push({ user: username, index: i+1, question: q, answer: selected, comment: comment });
   });
   document.getElementById('userDisplay').textContent = "Svar for: " + username;
   updateChart();
@@ -130,58 +161,55 @@ function saveData() {
 }
 
 function updateChart() {
-  const counts = {Ja:0, Nei:0, Usikker:0};
-  answers.forEach(a => {
-    if (a.answer) counts[a.answer]++;
-  });
+  const counts = { Ja: 0, Nei: 0, Usikker: 0 };
+  answers.forEach(a => { if (a.answer) counts[a.answer]++; });
 
   const ctx = document.getElementById('resultChart').getContext('2d');
-  if (resultChart) {
-    resultChart.destroy();
-  }
+  if (resultChart) resultChart.destroy();
+
   resultChart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: ['Ja (Grønn)', 'Nei (Rød)', 'Usikker (Gul)'],
-      datasets: [{
-        data: [counts.Ja, counts.Nei, counts.Usikker],
-        backgroundColor: ['#28a745','#dc3545','#ffc107']
-      }]
+      datasets: [{ data: [counts.Ja, counts.Nei, counts.Usikker], backgroundColor: ['#28a745','#dc3545','#ffc107'] }]
     },
-    options: {responsive:true, plugins:{legend:{display:false}}}
+    options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  // Lag oppsummering per blokk
-  let summaryHtml = "<h3>Oppsummering per bolk</h3>";
+  // Oppsummering per blokk
+  let summaryHtml = "<h3>Oppsummering per blokk</h3>";
   for (const [block, indices] of Object.entries(blocks)) {
     let ja=0, nei=0, usikker=0;
     indices.forEach(i => {
       const a = answers[i];
-      if (a) {
-        if (a.answer === 'Ja') ja++;
-        if (a.answer === 'Nei') nei++;
-        if (a.answer === 'Usikker') usikker++;
-      }
+      if (!a) return;
+      if (a.answer === 'Ja') ja++;
+      else if (a.answer === 'Nei') nei++;
+      else if (a.answer === 'Usikker') usikker++;
     });
     let status = '–';
     if (ja >= nei && ja >= usikker) status = '<span class="green">Grønn</span>';
     else if (nei >= ja && nei >= usikker) status = '<span class="red">Rød</span>';
     else status = '<span class="yellow">Gul</span>';
-    summaryHtml += `<p><strong>${block}:</strong> ${status} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+
+    summaryHtml += `<p><strong>${block}:</strong> ${status} (Ja: ${ja}, Nei: ${nei}, Usikker: ${usikker})</p>`;
   }
   document.getElementById('blockSummary').innerHTML = summaryHtml;
 }
 
 function exportCSV() {
-  let csv = 'Bruker,Spørsmål,Svar,Kommentar\n';
+  let csv = 'Bruker,Spørsmålsnr,Spørsmål,Svar,Kommentar\n';
   answers.forEach(a => {
-    csv += `${a.user},${a.question},${a.answer},${a.comment}\n`;
+    // Escape komma/linjeskift i felt
+    const esc = (t) => `"${String(t).replace(/"/g,'""')}"`;
+    csv += `${esc(a.user)},${a.index},${esc(a.question)},${esc(a.answer)},${esc(a.comment)}\n`;
   });
+
   document.getElementById('csvPreview').textContent = csv;
-  const blob = new Blob([csv], { type: 'text/csv' });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = 'kvalitetssystem.csv';
+  link.download = 'kvalitetssystem-ungdom.csv';
   link.click();
 }
 
@@ -192,8 +220,8 @@ function showTab(evt, tab) {
   evt.target.classList.add('active');
 }
 
+// Init
 renderQuestions();
 </script>
-
 </body>
 </html>
