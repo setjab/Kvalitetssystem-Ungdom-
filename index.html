@@ -40,10 +40,10 @@
       <div class="user-input">
         <label><strong>Brukernavn / ID</strong></label><br/>
         <input type="text" id="username" placeholder="Skriv inn brukernavn eller ID" style="width: 80%; margin-top: 6px;" />
-        <div class="hint">Tips: Bruk fast ID (f.eks. fødselsdato/kode) hvis du vil matche svar i regneark senere.</div>
       </div>
       <div id="questions"></div>
       <button type="submit" class="save-btn">Lagre</button>
+      <button type="button" onclick="resetForm()" style="margin-left:10px; background:#ffc107; color:#111; border:none; padding:10px 14px; border-radius:6px; cursor:pointer;">Ny bruker</button>
     </form>
   </section>
 
@@ -53,6 +53,7 @@
     <div id="userDisplay"></div>
     <canvas id="resultChart" aria-label="Oppsummering Ja/Nei/Usikker" role="img"></canvas>
     <div id="blockSummary" class="block-summary"></div>
+    <div id="allSummary" class="block-summary"></div>
   </section>
 
   <!-- Eksport -->
@@ -63,10 +64,9 @@
   </section>
 
 <script>
-/* === Spørsmål i korrekt rekkefølge (36 stk) === */
-// Del 1: Bli kjent og forstå behov (8)
+/* === Spørsmål (36 stk) === */
 const questions = [
-  // 1. Bli kjent og forstå behov
+  // Del 1 (8)
   "Har du blitt tilstrekkelig kjent med personen for å forstå behovet for oppfølging fremover?",
   "Hvis brukeren har oppgitt hindringer eller behov for hjelp og veiledning, har du hatt en samtale?",
   "Har samtalen handlet om brukerens jobbmuligheter?",
@@ -76,7 +76,7 @@ const questions = [
   "— Inneholder begrunnelsen vurdering av personens muligheter opp mot bransjer og/eller yrker?",
   "— Inneholder begrunnelsen vurdering av hvilken hjelp og støtte som trengs (veiledning, aktiviteter, tiltak)?",
 
-  // 2. Arbeidsretting og fremdrift (15)
+  // Del 2 (15)
   "Er det en tydelig arbeidsretting i samhandlingen med brukeren?",
   "— Har personen fått veiledning knyttet til jobbmål?",
   "— Har arbeid og aktivitet vært sentrale tema i brukermøtene og i dialogen?",
@@ -93,7 +93,7 @@ const questions = [
   "— Har aktivitetene blitt fulgt opp og evaluert sammen med brukeren?",
   "— Har brukerens mål eller situasjon endret seg, og hvis ja: ble det fattet nytt oppfølgingsvedtak?",
 
-  // 3. Brukerens medvirkning (10)
+  // Del 3 (10)
   "Har brukermøtene vært planlagte og forberedte?",
   "— Er møteagenda delt med brukeren i forkant slik at han/hun kan komme med innspill?",
   "— Brukes aktivitetsplanen som et samhandlingsverktøy i oppfølgingen?",
@@ -105,28 +105,32 @@ const questions = [
   "— Er det gjennomført fysiske møter når det er nødvendig og/eller brukeren ønsker det?",
   "— Har brukeren medvirket i valg av tiltak/aktivitet?",
 
-  // 4. Ungdomsgarantien (3)
+  // Del 4 (3)
   "Har den unge fått informasjon om ungdomsgarantien? (Beskriv kort i kommentar)",
   "Har den unge hatt brudd i oppfølgingen/veilederbytte? (Hvis ja, beskriv overgang til ny kontaktperson i kommentar)",
   "Er det jobbet med å gi den unge raskt målrettede aktiviteter mot arbeid og/eller utdanning? (Beskriv kort i kommentar)"
 ];
 
-/* === Blokk-indekser (0-basert) ===
-   Del 1: 0–7
-   Del 2: 8–22
-   Del 3: 23–32
-   Del 4: 33–35
-*/
+/* === Blokker === */
 const blocks = {
-  "Bli kjent og forstå behov": Array.from({length: 8}, (_,i) => i),                // 0–7
-  "Arbeidsretting og fremdrift": Array.from({length: 15}, (_,i) => i + 8),         // 8–22
-  "Brukermedvirkning": Array.from({length: 10}, (_,i) => i + 23),                  // 23–32
-  "Ungdomsgaranti (U30)": Array.from({length: 3}, (_,i) => i + 33)                 // 33–35
+  "Bli kjent og forstå behov": Array.from({length: 8}, (_,i) => i),          // 0–7
+  "Arbeidsretting og fremdrift": Array.from({length: 15}, (_,i) => i + 8),  // 8–22
+  "Brukermedvirkning": Array.from({length: 10}, (_,i) => i + 23),           // 23–32
+  "Ungdomsgaranti (U30)": Array.from({length: 3}, (_,i) => i + 33)          // 33–35
 };
 
-let answers = [];
+let allAnswers = [];
 let resultChart = null;
 
+/* === Statuslogikk === */
+function getBlockStatus(ja, nei, usikker) {
+  if (nei > ja && nei >= usikker) return '<span class="red">Rød</span>';
+  if (usikker > ja && usikker >= nei) return '<span class="yellow">Gul</span>';
+  if (ja > nei && ja > usikker) return '<span class="green">Grønn</span>';
+  return '<span class="yellow">Gul</span>'; // fallback ved likt
+}
+
+/* === Spørsmål === */
 function renderQuestions() {
   const container = document.getElementById('questions');
   container.innerHTML = '';
@@ -145,23 +149,54 @@ function renderQuestions() {
   });
 }
 
+/* === Lagring === */
 function saveData() {
   const username = document.getElementById('username').value || 'Ukjent bruker';
-  answers = [];
+  let userAnswers = [];
+
   questions.forEach((q, i) => {
     const radios = document.getElementsByName('q' + i);
     let selected = '';
     radios.forEach(r => { if (r.checked) selected = r.value; });
     const comment = document.getElementById('comment' + i).value || '';
-    answers.push({ user: username, index: i+1, question: q, answer: selected, comment: comment });
+    userAnswers.push({ user: username, index: i+1, question: q, answer: selected, comment: comment });
   });
-  document.getElementById('userDisplay').textContent = "Svar for: " + username;
-  updateChart();
+
+  allAnswers.push({ user: username, answers: userAnswers });
+
+  updateDashboard();
   alert("Svar lagret for " + username);
+  document.getElementById("answerForm").reset();
 }
 
-function updateChart() {
-  const counts = { Ja: 0, Nei: 0, Usikker: 0 };
+function resetForm() {
+  document.getElementById("answerForm").reset();
+  document.getElementById("username").value = "";
+  alert("Skjema nullstilt – klar for ny bruker!");
+}
+
+/* === Dashboard === */
+function updateDashboard() {
+  const display = document.getElementById('userDisplay');
+  display.innerHTML = "<h3>Registrerte brukere:</h3><ul>" +
+    allAnswers.map((u, idx) => `<li><a href="#" onclick="showUser(${idx})">${u.user}</a></li>`).join('') +
+    "</ul>";
+
+  if (allAnswers.length > 0) {
+    showUser(allAnswers.length-1); // vis siste bruker
+    renderBlockSummaryAll();       // vis samlet oppsummering
+  }
+}
+
+function showUser(index) {
+  const user = allAnswers[index];
+  if (!user) return;
+  renderChart(user.answers);
+  renderBlockSummaryUser(user);
+}
+
+function renderChart(answers) {
+  const counts = { Ja:0, Nei:0, Usikker:0 };
   answers.forEach(a => { if (a.answer) counts[a.answer]++; });
 
   const ctx = document.getElementById('resultChart').getContext('2d');
@@ -175,36 +210,52 @@ function updateChart() {
     },
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
+}
 
-  // Oppsummering per blokk
-  let summaryHtml = "<h3>Oppsummering per blokk</h3>";
+/* === Oppsummering === */
+function renderBlockSummaryUser(user) {
+  let summaryHtml = `<h3>Oppsummering per blokk (${user.user})</h3>`;
   for (const [block, indices] of Object.entries(blocks)) {
     let ja=0, nei=0, usikker=0;
     indices.forEach(i => {
-      const a = answers[i];
+      const a = user.answers[i];
       if (!a) return;
       if (a.answer === 'Ja') ja++;
       else if (a.answer === 'Nei') nei++;
       else if (a.answer === 'Usikker') usikker++;
     });
-    let status = '–';
-    if (ja >= nei && ja >= usikker) status = '<span class="green">Grønn</span>';
-    else if (nei >= ja && nei >= usikker) status = '<span class="red">Rød</span>';
-    else status = '<span class="yellow">Gul</span>';
-
-    summaryHtml += `<p><strong>${block}:</strong> ${status} (Ja: ${ja}, Nei: ${nei}, Usikker: ${usikker})</p>`;
+    summaryHtml += `<p><strong>${block}:</strong> ${getBlockStatus(ja,nei,usikker)} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
   }
   document.getElementById('blockSummary').innerHTML = summaryHtml;
 }
 
+function renderBlockSummaryAll() {
+  let summaryHtml = "<h3>Oppsummering per blokk (alle brukere)</h3>";
+  for (const [block, indices] of Object.entries(blocks)) {
+    let ja=0, nei=0, usikker=0;
+    allAnswers.forEach(user => {
+      indices.forEach(i => {
+        const a = user.answers[i];
+        if (!a) return;
+        if (a.answer === 'Ja') ja++;
+        else if (a.answer === 'Nei') nei++;
+        else if (a.answer === 'Usikker') usikker++;
+      });
+    });
+    summaryHtml += `<p><strong>${block}:</strong> ${getBlockStatus(ja,nei,usikker)} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+  }
+  document.getElementById('allSummary').innerHTML = summaryHtml;
+}
+
+/* === Eksport === */
 function exportCSV() {
   let csv = 'Bruker,Spørsmålsnr,Spørsmål,Svar,Kommentar\n';
-  answers.forEach(a => {
-    // Escape komma/linjeskift i felt
-    const esc = (t) => `"${String(t).replace(/"/g,'""')}"`;
-    csv += `${esc(a.user)},${a.index},${esc(a.question)},${esc(a.answer)},${esc(a.comment)}\n`;
+  allAnswers.forEach(user => {
+    user.answers.forEach(a => {
+      const esc = (t) => `"${String(t).replace(/"/g,'""')}"`;
+      csv += `${esc(user.user)},${a.index},${esc(a.question)},${esc(a.answer)},${esc(a.comment)}\n`;
+    });
   });
-
   document.getElementById('csvPreview').textContent = csv;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
