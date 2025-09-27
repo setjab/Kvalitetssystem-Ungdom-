@@ -44,7 +44,7 @@
     .save-btn { padding:10px 14px; background:#0b7; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; }
     .export-btn { padding:10px 14px; background:#189; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; margin-right:8px; }
     #userList { margin-top:12px; background:#fff; padding:10px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-    .block-summary { margin-top:12px; padding:12px; background:#fff; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .block-summary { margin-top:12px; padding:12px; background:#f8f9ff; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
     .status-circle { display:inline-block; width:40px; height:40px; border-radius:50%; margin-right:10px; vertical-align:middle; }
     .green { background:#28a745; }
     .red { background:#dc3545; }
@@ -176,25 +176,12 @@ function renderEmptyDashboard(){
 }
 function renderChartAndBlocks(){
   const counts={Ja:0,Nei:0,Usikker:0};
-  allAnswers.forEach(u=>u.answers.forEach(a=>{
-    if(a.answer)counts[a.answer]++;
-  }));
-
+  allAnswers.forEach(u=>u.answers.forEach(a=>{if(a.answer)counts[a.answer]++;}));
   const ctx=document.getElementById('resultChart').getContext('2d');
   if(resultChart) resultChart.destroy();
-  resultChart=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:['Ja','Nei','Usikker'],
-      datasets:[{
-        data:[counts.Ja,counts.Nei,counts.Usikker],
-        backgroundColor:['#28a745','#dc3545','#ffc107']
-      }]
-    },
-    options:{responsive:false}
-  });
-
-  let html='<h4>Oppsummering per blokk</h4>';
+  resultChart=new Chart(ctx,{type:'bar',data:{labels:['Ja','Nei','Usikker'],datasets:[{data:[counts.Ja,counts.Nei,counts.Usikker],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:false}});
+  
+  let html='<h4>Oppsummering per blokk (alle brukere)</h4>';
   for(const [block,idxs] of Object.entries(blocks)){
     let ja=0,nei=0,usikker=0;
     allAnswers.forEach(u=>{
@@ -206,52 +193,16 @@ function renderChartAndBlocks(){
     });
     const total=ja+nei+usikker;
 
-    // velg farge basert på høyeste tall
     let statusClass='yellow';
     if (ja >= nei && ja >= usikker) statusClass='green';
     else if (nei >= ja && nei >= usikker) statusClass='red';
     else if (usikker >= ja && usikker >= nei) statusClass='yellow';
 
     html+=`<p><span class="status-circle ${statusClass}"></span>
-           <b>${block}:</b> Totalt ${total} 
-           (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+           <b>${block}:</b> Totalt ${total} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
   }
   document.getElementById('allSummary').innerHTML=html;
 }
-
-    },
-    options:{responsive:false}
-  });
-
-  let html='<h4>Oppsummering per blokk</h4>';
-  for(const [block,idxs] of Object.entries(blocks)){
-    let ja=0,nei=0,usikker=0;
-    allAnswers.forEach(u=>{
-      idxs.forEach(i=>{
-        if(u.answers[i].answer==='Ja')ja++;
-        if(u.answers[i].answer==='Nei')nei++;
-        if(u.answers[i].answer==='Usikker')usikker++;
-      });
-    });
-    const total=ja+nei+usikker;
-
-    // bestem farge basert på hva som er størst
-    let statusClass='yellow'; 
-    if (ja > nei && ja > usikker) {
-      statusClass='green'; 
-    } else if (nei > ja && nei > usikker) {
-      statusClass='red'; 
-    } else if (usikker > ja && usikker > nei) {
-      statusClass='yellow';
-    }
-
-    html+=`<p><span class="status-circle ${statusClass}"></span>
-           <b>${block}:</b> Totalt ${total} 
-           (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
-  }
-  document.getElementById('allSummary').innerHTML=html;
-}
-
 function exportCSV(){
   let csv="Bruker,Spørsmål,Svar\n";
   allAnswers.forEach(u=>u.answers.forEach(a=>{csv+=`${u.user},"${a.question}",${a.answer}\n`;}));
