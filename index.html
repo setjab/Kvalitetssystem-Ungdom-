@@ -206,6 +206,35 @@ function renderChartAndBlocks(){
     });
     const total=ja+nei+usikker;
 
+    // velg farge basert på høyeste tall
+    let statusClass='yellow';
+    if (ja >= nei && ja >= usikker) statusClass='green';
+    else if (nei >= ja && nei >= usikker) statusClass='red';
+    else if (usikker >= ja && usikker >= nei) statusClass='yellow';
+
+    html+=`<p><span class="status-circle ${statusClass}"></span>
+           <b>${block}:</b> Totalt ${total} 
+           (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+  }
+  document.getElementById('allSummary').innerHTML=html;
+}
+
+    },
+    options:{responsive:false}
+  });
+
+  let html='<h4>Oppsummering per blokk</h4>';
+  for(const [block,idxs] of Object.entries(blocks)){
+    let ja=0,nei=0,usikker=0;
+    allAnswers.forEach(u=>{
+      idxs.forEach(i=>{
+        if(u.answers[i].answer==='Ja')ja++;
+        if(u.answers[i].answer==='Nei')nei++;
+        if(u.answers[i].answer==='Usikker')usikker++;
+      });
+    });
+    const total=ja+nei+usikker;
+
     // bestem farge basert på hva som er størst
     let statusClass='yellow'; 
     if (ja > nei && ja > usikker) {
