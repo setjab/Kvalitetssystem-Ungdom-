@@ -176,20 +176,53 @@ function renderEmptyDashboard(){
 }
 function renderChartAndBlocks(){
   const counts={Ja:0,Nei:0,Usikker:0};
-  allAnswers.forEach(u=>u.answers.forEach(a=>{if(a.answer)counts[a.answer]++;}));
+  allAnswers.forEach(u=>u.answers.forEach(a=>{
+    if(a.answer)counts[a.answer]++;
+  }));
+
   const ctx=document.getElementById('resultChart').getContext('2d');
   if(resultChart) resultChart.destroy();
-  resultChart=new Chart(ctx,{type:'bar',data:{labels:['Ja','Nei','Usikker'],datasets:[{data:[counts.Ja,counts.Nei,counts.Usikker],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:false}});
+  resultChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:['Ja','Nei','Usikker'],
+      datasets:[{
+        data:[counts.Ja,counts.Nei,counts.Usikker],
+        backgroundColor:['#28a745','#dc3545','#ffc107']
+      }]
+    },
+    options:{responsive:false}
+  });
+
   let html='<h4>Oppsummering per blokk</h4>';
   for(const [block,idxs] of Object.entries(blocks)){
     let ja=0,nei=0,usikker=0;
-    allAnswers.forEach(u=>{idxs.forEach(i=>{if(u.answers[i].answer==='Ja')ja++; if(u.answers[i].answer==='Nei')nei++; if(u.answers[i].answer==='Usikker')usikker++;});});
+    allAnswers.forEach(u=>{
+      idxs.forEach(i=>{
+        if(u.answers[i].answer==='Ja')ja++;
+        if(u.answers[i].answer==='Nei')nei++;
+        if(u.answers[i].answer==='Usikker')usikker++;
+      });
+    });
     const total=ja+nei+usikker;
-    let statusClass='yellow'; if(ja>nei&&ja>usikker)statusClass='green'; else if(nei>ja&&nei>=usikker)statusClass='red';
-    html+=`<p><span class="status-circle ${statusClass}"></span><b>${block}:</b> Totalt ${total} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+
+    // bestem farge basert på hva som er størst
+    let statusClass='yellow'; 
+    if (ja > nei && ja > usikker) {
+      statusClass='green'; 
+    } else if (nei > ja && nei > usikker) {
+      statusClass='red'; 
+    } else if (usikker > ja && usikker > nei) {
+      statusClass='yellow';
+    }
+
+    html+=`<p><span class="status-circle ${statusClass}"></span>
+           <b>${block}:</b> Totalt ${total} 
+           (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
   }
   document.getElementById('allSummary').innerHTML=html;
 }
+
 function exportCSV(){
   let csv="Bruker,Spørsmål,Svar\n";
   allAnswers.forEach(u=>u.answers.forEach(a=>{csv+=`${u.user},"${a.question}",${a.answer}\n`;}));
