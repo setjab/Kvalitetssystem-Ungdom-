@@ -1,104 +1,88 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <header>⭐ KVALITETSSYSTEM – UNGDOM ⭐<br>
-<span>✅ Utviklet av Settar Al-Jabri ✅</span></header>
-
+  <meta charset="utf-8" />
+  <title>Kvalitetssystem – Ungdom</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin:20px; background:#f4f6f9; }
-    header { 
-      header {
-  background: linear-gradient(90deg, #14532d, #228B22, #b8860b);
-  color: #fff;
-  padding: 36px 20px;
-  text-align: center;
-  font-size: 34px;
-  font-weight: 900;
-  border-radius: 14px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  text-shadow: 0 0 6px rgba(255,255,255,0.6),
-               0 0 12px rgba(0,0,0,0.4);
-}
-header span {
-  display:block;
-  font-size:22px;
-  font-weight:600;
-  margin-top:10px;
-  letter-spacing:1px;
-  text-transform:none;
-  text-shadow: 0 0 4px rgba(255,255,255,0.5);
-}
+    body { font-family: Arial, sans-serif; margin:20px; background:#f4f6f9; color:#222; }
 
+    header {
+      background: linear-gradient(90deg, #14532d, #228B22, #b8860b);
+      color: #fff;
+      padding: 36px 20px;
+      text-align: center;
+      font-size: 34px;
+      font-weight: 900;
+      border-radius: 14px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 6px rgba(255,255,255,0.6),
+                   0 0 12px rgba(0,0,0,0.4);
     }
-    .question { background:#fff; padding:12px; margin-bottom:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,.08); }
-    .answer-btn { margin:5px; padding:10px 15px; border:none; border-radius:6px; cursor:pointer; opacity:0.8; }
+    header span {
+      display:block;
+      font-size:22px;
+      font-weight:600;
+      margin-top:10px;
+      letter-spacing:1px;
+      text-transform:none;
+      text-shadow: 0 0 4px rgba(255,255,255,0.5);
+    }
+
+    .question { background:#fff; padding:12px; margin-bottom:10px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+    .answer-btn { margin:6px 6px 6px 0; padding:10px 14px; border:none; border-radius:6px; cursor:pointer; opacity:.9; }
     .answer-btn.selected { outline:3px solid #000; opacity:1; }
     .answer-ja { background:#28a745; color:#fff; }
     .answer-nei { background:#dc3545; color:#fff; }
     .answer-usikker { background:#ffc107; color:#111; }
-    .block-summary { margin-top:15px; padding:12px; background:#eef; border-radius:6px; }
-    .export-btn { margin-top:15px; padding:10px 15px; background:#17a2b8; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-    .save-btn { margin-top:10px; padding:10px 15px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-    .status-circle { display:inline-block; width:56px; height:56px; border-radius:50%; margin-right:12px; vertical-align:middle; }
+    .save-btn { padding:10px 14px; background:#0b7; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; }
+    .export-btn { padding:10px 14px; background:#189; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; margin-right:8px; }
+    #userList { margin-top:12px; background:#fff; padding:10px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .block-summary { margin-top:12px; padding:12px; background:#fff; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .status-circle { display:inline-block; width:40px; height:40px; border-radius:50%; margin-right:10px; vertical-align:middle; }
     .green { background:#28a745; }
     .red { background:#dc3545; }
     .yellow { background:#ffc107; }
+    footer { margin-top:18px; font-size:13px; color:#666; text-align:center; }
   </style>
 </head>
 <body>
 
-header {
-  background: linear-gradient(90deg, #14532d, #228B22, #b8860b);
-  color: #fff;
-  padding: 36px 20px;
-  text-align: center;
-  font-size: 34px;
-  font-weight: 900;
-  border-radius: 14px;
-  margin-bottom: 25px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  text-shadow: 0 0 6px rgba(255,255,255,0.6),
-               0 0 12px rgba(0,0,0,0.4);
-}
-header span {
-  display:block;
-  font-size:22px;
-  font-weight:600;
-  margin-top:10px;
-  letter-spacing:1px;
-  text-transform:none;
-  text-shadow: 0 0 4px rgba(255,255,255,0.5);
-}
-
-
+<header>⭐ KVALITETSSYSTEM – UNGDOM ⭐<br>
+<span>✅ Utviklet av Settar Al-Jabri ✅</span></header>
 
 <h2>Registrering</h2>
-<input type="text" id="username" placeholder="Brukernavn / ID" style="width:80%; padding:8px;"/>
-<div id="questions"></div>
-<button onclick="saveData()" class="save-btn">💾 Lagre svar</button>
+<label>Brukernavn / ID
+  <input type="text" id="username" placeholder="Skriv navn eller ID" />
+</label>
 
+<div id="questions"></div>
+<button class="save-btn" onclick="saveData()">💾 Lagre svar</button>
+
+<div id="userList"></div>
 <hr/>
 
 <div id="dashboard">
-  <h2>Dashboard – Samlet oversikt</h2>
-  <canvas id="resultChart" width="500" height="250"></canvas>
+  <h3>Dashboard – samlet (alle brukere)</h3>
+  <canvas id="resultChart" width="600" height="300"></canvas>
   <div id="allSummary" class="block-summary"></div>
 </div>
 
-<button onclick="exportCSV()" class="export-btn">⬇ Last ned CSV</button>
-<button onclick="exportPDF()" class="export-btn">📄 Last ned PDF</button>
+<div style="margin-top:12px;">
+  <button class="export-btn" onclick="exportCSV()">⬇ Last ned CSV</button>
+  <button class="export-btn" onclick="exportPDF()">📄 Last ned PDF</button>
+</div>
+
+<footer>Utviklet av Settar Al-Jabri</footer>
 
 <script>
-/* === Spørsmål (36 stk) === */
+/* === Alle spørsmål (36 stk) === */
 const questions = [
   // Del 1 (8)
   "Har du blitt tilstrekkelig kjent med personen for å forstå behovet for oppfølging fremover?",
@@ -150,106 +134,76 @@ const blocks = {
   "Ungdomsgaranti (U30)": Array.from({length:3},(_,i)=>i+33)
 };
 
+let answers = [];
 let allAnswers = [];
 let resultChart = null;
-let answers=[];
 
-/* Render spørsmål */
 function renderQuestions(){
-  const qDiv=document.getElementById("questions");
-  qDiv.innerHTML="";
+  const div=document.getElementById('questions');
+  div.innerHTML='';
   questions.forEach((q,i)=>{
-    qDiv.innerHTML+=`
+    div.innerHTML+=`
       <div class="question" id="q${i}">
         <strong>${i+1}. ${q}</strong><br>
-        <button class="answer-btn answer-ja" onclick="setAnswer(${i},'Ja',this)">Ja</button>
-        <button class="answer-btn answer-nei" onclick="setAnswer(${i},'Nei',this)">Nei</button>
-        <button class="answer-btn answer-usikker" onclick="setAnswer(${i},'Usikker',this)">Usikker</button>
+        <button class="answer-btn answer-ja" onclick="selectAnswer(${i},'Ja',this)">Ja</button>
+        <button class="answer-btn answer-nei" onclick="selectAnswer(${i},'Nei',this)">Nei</button>
+        <button class="answer-btn answer-usikker" onclick="selectAnswer(${i},'Usikker',this)">Usikker</button>
       </div>`;
   });
 }
-function setAnswer(i,val,btn){
+function selectAnswer(i,val,btn){
   answers[i]=val;
-  document.querySelectorAll(`#q${i} .answer-btn`).forEach(b=>b.classList.remove("selected"));
-  btn.classList.add("selected");
+  document.querySelectorAll(`#q${i} .answer-btn`).forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
 }
-
-/* Lagre */
 function saveData(){
-  const username=document.getElementById("username").value||"Ukjent";
-  const userAnswers=questions.map((q,i)=>({question:q,answer:answers[i]||""}));
-  allAnswers.push({user:username,answers:userAnswers});
-  renderChartAndBlocks();
-  document.getElementById("username").value="";
-  answers=[];
-  renderQuestions();
+  const username=document.getElementById('username').value||'Ukjent';
+  const userAnswers=questions.map((q,i)=>({question:q,answer:answers[i]||''}));
+  allAnswers.push({user:username,answers:userAnswers,timestamp:new Date().toISOString()});
+  renderUserList(); renderChartAndBlocks();
+  answers=[]; renderQuestions(); document.getElementById('username').value='';
 }
-
-/* Graf + blokker (samlet for alle brukere) */
+function renderUserList(){
+  let html='<strong>Lagrede brukere:</strong><ul>';
+  for(let i=allAnswers.length-1;i>=0;i--){html+=`<li>${allAnswers[i].user}</li>`;}
+  html+='</ul>';
+  document.getElementById('userList').innerHTML=html;
+}
+function renderEmptyDashboard(){
+  const ctx=document.getElementById('resultChart').getContext('2d');
+  resultChart=new Chart(ctx,{type:'bar',data:{labels:['Ja','Nei','Usikker'],datasets:[{data:[0,0,0],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:false}});
+  document.getElementById('allSummary').innerHTML='<em>Ingen data</em>';
+}
 function renderChartAndBlocks(){
   const counts={Ja:0,Nei:0,Usikker:0};
-  allAnswers.forEach(u=>{
-    u.answers.forEach(a=>{ if(a.answer) counts[a.answer]++; });
-  });
-  const ctx=document.getElementById("resultChart").getContext("2d");
+  allAnswers.forEach(u=>u.answers.forEach(a=>{if(a.answer)counts[a.answer]++;}));
+  const ctx=document.getElementById('resultChart').getContext('2d');
   if(resultChart) resultChart.destroy();
-  resultChart=new Chart(ctx,{
-    type:'bar',
-    data:{labels:["Ja","Nei","Usikker"],datasets:[{data:[counts.Ja,counts.Nei,counts.Usikker],backgroundColor:["#28a745","#dc3545","#ffc107"]}]},
-    options:{responsive:false,plugins:{legend:{display:false}}}
-  });
-
-  let html="<h4>Oppsummering per blokk (alle brukere)</h4>";
+  resultChart=new Chart(ctx,{type:'bar',data:{labels:['Ja','Nei','Usikker'],datasets:[{data:[counts.Ja,counts.Nei,counts.Usikker],backgroundColor:['#28a745','#dc3545','#ffc107']}]},options:{responsive:false}});
+  let html='<h4>Oppsummering per blokk</h4>';
   for(const [block,idxs] of Object.entries(blocks)){
     let ja=0,nei=0,usikker=0;
-    allAnswers.forEach(u=>{
-      idxs.forEach(i=>{
-        if(u.answers[i].answer==="Ja") ja++;
-        if(u.answers[i].answer==="Nei") nei++;
-        if(u.answers[i].answer==="Usikker") usikker++;
-      });
-    });
-    let total=ja+nei+usikker;
-    let statusClass="yellow";
-    if(ja>nei && ja>usikker) statusClass="green";
-    else if(nei>ja && nei>=usikker) statusClass="red";
-
-    html+=`
-      <p><span class="status-circle ${statusClass}"></span>
-      <b>${block}:</b> Totalt: ${total} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+    allAnswers.forEach(u=>{idxs.forEach(i=>{if(u.answers[i].answer==='Ja')ja++; if(u.answers[i].answer==='Nei')nei++; if(u.answers[i].answer==='Usikker')usikker++;});});
+    const total=ja+nei+usikker;
+    let statusClass='yellow'; if(ja>nei&&ja>usikker)statusClass='green'; else if(nei>ja&&nei>=usikker)statusClass='red';
+    html+=`<p><span class="status-circle ${statusClass}"></span><b>${block}:</b> Totalt ${total} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
   }
-  document.getElementById("allSummary").innerHTML=html;
+  document.getElementById('allSummary').innerHTML=html;
 }
-
-/* Eksport CSV */
 function exportCSV(){
   let csv="Bruker,Spørsmål,Svar\n";
-  allAnswers.forEach(u=>{
-    u.answers.forEach(a=>{
-      csv+=`${u.user},"${a.question}",${a.answer}\n`;
-    });
-  });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const link=document.createElement("a");
-  link.href=URL.createObjectURL(blob);
-  link.download="resultater.csv";
-  link.click();
+  allAnswers.forEach(u=>u.answers.forEach(a=>{csv+=`${u.user},"${a.question}",${a.answer}\n`;}));
+  const blob=new Blob([csv],{type:"text/csv"}); const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob); link.download="resultater.csv"; link.click();
 }
-
-/* Eksport PDF – 3x større + 2 cm margin */
 async function exportPDF(){
-  const { jsPDF }=window.jspdf;
-  const element=document.getElementById("dashboard");
-  const canvas=await html2canvas(element,{scale:3});
-  const imgData=canvas.toDataURL("image/png");
-  const pdf=new jsPDF("p","mm","a4");
-  const pdfWidth=pdf.internal.pageSize.getWidth()-20; // 2 cm margin
+  const {jsPDF}=window.jspdf; const element=document.getElementById("dashboard");
+  const canvas=await html2canvas(element,{scale:3}); const imgData=canvas.toDataURL("image/png");
+  const pdf=new jsPDF("p","mm","a4"); const marginLeft=20; const pdfWidth=pdf.internal.pageSize.getWidth()-marginLeft;
   const pdfHeight=(canvas.height*pdfWidth)/canvas.width;
-  pdf.addImage(imgData,"PNG",20,10,pdfWidth,pdfHeight); // flyttet 20mm til høyre
-  pdf.save("resultater.pdf");
+  pdf.addImage(imgData,"PNG",marginLeft,10,pdfWidth,pdfHeight); pdf.save("resultater.pdf");
 }
-
-renderQuestions();
+renderQuestions(); renderEmptyDashboard();
 </script>
 </body>
 </html>
