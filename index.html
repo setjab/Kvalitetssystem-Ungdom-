@@ -1,67 +1,58 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Kvalitetssystem – Ungdom (Settar Al-Jabri)</title>
+  <meta charset="UTF-8">
+  <title>Kvalitetssystem – Ungdom</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f6f9; color: #333; }
-    header { background: #004aad; color: #fff; padding: 16px; text-align: center; font-size: 20px; }
-    nav { display: flex; background: #0066cc; }
-    nav button { flex: 1; padding: 14px; border: none; background: #0066cc; color: #fff; font-size: 16px; cursor: pointer; }
-    nav button.active { background: #004aad; font-weight: bold; }
-    section { display: none; padding: 20px; }
-    section.active { display: block; }
-    .question { margin-bottom: 14px; padding: 12px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
-    .green { background: #28a745; color: #fff; padding: 2px 8px; border-radius: 12px; }
-    .red { background: #dc3545; color: #fff; padding: 2px 8px; border-radius: 12px; }
-    .yellow { background: #ffc107; color: #111; padding: 2px 8px; border-radius: 12px; }
-    .save-btn, .export-btn { padding: 10px 14px; background: #28a745; border: none; color: #fff; border-radius: 6px; cursor: pointer; margin-top: 16px; }
-    .export-btn { background: #17a2b8; }
-    .user-input { margin-bottom: 18px; padding: 12px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
-    .block-summary { margin-top: 18px; padding: 14px; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,.08); }
-    .hint { font-size: 12px; color: #666; }
+    body { font-family: Arial, sans-serif; margin:20px; background:#f4f6f9; }
+    header { 
+      background:linear-gradient(90deg,#002d72,#004aad,#0066cc); 
+      color:#fff; 
+      padding:25px; 
+      text-align:center; 
+      font-size:28px; 
+      font-weight:bold; 
+      letter-spacing:1px;
+      border-radius:10px;
+      margin-bottom:20px;
+    }
+    .question { background:#fff; padding:12px; margin-bottom:10px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,.08); }
+    .answer-btn { margin:5px; padding:10px 15px; border:none; border-radius:6px; cursor:pointer; opacity:0.8; }
+    .answer-btn.selected { outline:3px solid #000; opacity:1; }
+    .answer-ja { background:#28a745; color:#fff; }
+    .answer-nei { background:#dc3545; color:#fff; }
+    .answer-usikker { background:#ffc107; color:#111; }
+    .block-summary { margin-top:15px; padding:12px; background:#eef; border-radius:6px; }
+    .export-btn { margin-top:15px; padding:10px 15px; background:#17a2b8; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+    .save-btn { margin-top:10px; padding:10px 15px; background:#28a745; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+    .status-circle { display:inline-block; width:56px; height:56px; border-radius:50%; margin-right:12px; vertical-align:middle; }
+    .green { background:#28a745; }
+    .red { background:#dc3545; }
+    .yellow { background:#ffc107; }
   </style>
 </head>
 <body>
-  <header>Kvalitetssystem – Ungdom (Utviklet av Settar Al-Jabri)</header>
 
-  <nav>
-    <button class="tab-btn active" onclick="showTab(event,'register')">Registrering</button>
-    <button class="tab-btn" onclick="showTab(event,'dashboard')">Dashboard</button>
-    <button class="tab-btn" onclick="showTab(event,'export')">Eksport</button>
-  </nav>
+<header>Kvalitetssystem – Ungdom (Utviklet av Settar Al-Jabri)</header>
 
-  <!-- Registrering -->
-  <section id="register" class="active">
-    <h2>Registrering av svar</h2>
-    <form id="answerForm" onsubmit="event.preventDefault(); saveData();">
-      <div class="user-input">
-        <label><strong>Brukernavn / ID</strong></label><br/>
-        <input type="text" id="username" placeholder="Skriv inn brukernavn eller ID" style="width: 80%; margin-top: 6px;" />
-      </div>
-      <div id="questions"></div>
-      <button type="submit" class="save-btn">Lagre</button>
-      <button type="button" onclick="resetForm()" style="margin-left:10px; background:#ffc107; color:#111; border:none; padding:10px 14px; border-radius:6px; cursor:pointer;">Ny bruker</button>
-    </form>
-  </section>
+<h2>Registrering</h2>
+<input type="text" id="username" placeholder="Brukernavn / ID" style="width:80%; padding:8px;"/>
+<div id="questions"></div>
+<button onclick="saveData()" class="save-btn">💾 Lagre svar</button>
 
-  <!-- Dashboard -->
-  <section id="dashboard">
-    <h2>Dashboard – Trafikklysoversikt</h2>
-    <div id="userDisplay"></div>
-    <canvas id="resultChart" aria-label="Oppsummering Ja/Nei/Usikker" role="img"></canvas>
-    <div id="blockSummary" class="block-summary"></div>
-    <div id="allSummary" class="block-summary"></div>
-  </section>
+<hr/>
 
-  <!-- Eksport -->
-  <section id="export">
-    <h2>Eksport av resultater</h2>
-    <button class="export-btn" onclick="exportCSV()">Last ned som CSV</button>
-    <pre id="csvPreview"></pre>
-  </section>
+<div id="dashboard">
+  <h2>Dashboard – Samlet oversikt</h2>
+  <canvas id="resultChart" width="500" height="250"></canvas>
+  <div id="allSummary" class="block-summary"></div>
+</div>
+
+<button onclick="exportCSV()" class="export-btn">⬇ Last ned CSV</button>
+<button onclick="exportPDF()" class="export-btn">📄 Last ned PDF</button>
 
 <script>
 /* === Spørsmål (36 stk) === */
@@ -74,204 +65,147 @@ const questions = [
   "— Inneholder begrunnelsen vurdering av brukerens ønsker, ressurser og forutsetninger?",
   "— Inneholder begrunnelsen vurdering av personens jobbmuligheter (nå eller på sikt)?",
   "— Inneholder begrunnelsen vurdering av personens muligheter opp mot bransjer og/eller yrker?",
-  "— Inneholder begrunnelsen vurdering av hvilken hjelp og støtte som trengs (veiledning, aktiviteter, tiltak)?",
-
+  "— Inneholder begrunnelsen vurdering av hvilken hjelp og støtte som trengs?",
   // Del 2 (15)
   "Er det en tydelig arbeidsretting i samhandlingen med brukeren?",
   "— Har personen fått veiledning knyttet til jobbmål?",
-  "— Har arbeid og aktivitet vært sentrale tema i brukermøtene og i dialogen?",
-  "— Har brukeren arbeidsrettede aktiviteter i planen sin, og er oppfølging under gjennomføring avtalt?",
-  "— Har det vært tydelige avtalte oppfølgingspunkter underveis?",
-  "Har du vurdert hvilken hjelp og støtte som kan bidra til at brukeren kan være i jobb?",
-  "— Har du sammen med brukeren vurdert behov/muligheter for tilrettelegging på arbeidsplassen?",
-  "— Har du sammen med brukeren vurdert om kvalifisering eller opplæringstiltak kan øke mulighetene?",
-  "— Har du sammen med brukeren vurdert om dere bør samarbeide med andre personer/enheter?",
-  "Har det vært samhandling med arbeidsgiver(e) eller arbeidsplass(er) i oppfølgingsløpet for å støtte brukeren med å beholde eller skaffe arbeid?",
-  "— Hvis brukeren er i tiltak/har arbeidsgiver: Er arbeidsgiver en del av oppfølgingen – og på hvilken måte?",
-  "— Har du vurdert lønnstilskudd, mentor eller andre støttetiltak opp mot arbeidsgiver?",
+  "— Har arbeid og aktivitet vært sentrale tema i dialogen?",
+  "— Har brukeren arbeidsrettede aktiviteter i planen sin?",
+  "— Har det vært tydelige avtalte oppfølgingspunkter?",
+  "Har du vurdert hvilken hjelp og støtte som kan bidra til jobb?",
+  "— Har du vurdert tilrettelegging på arbeidsplassen?",
+  "— Har du vurdert kvalifisering/opplæring?",
+  "— Har du vurdert samarbeid med andre enheter?",
+  "Har det vært samhandling med arbeidsgiver(e)?",
+  "— Er arbeidsgiver en del av oppfølgingen?",
+  "— Har du vurdert lønnstilskudd/mentor?",
   "Har oppfølgingen blitt evaluert underveis?",
-  "— Har aktivitetene blitt fulgt opp og evaluert sammen med brukeren?",
-  "— Har brukerens mål eller situasjon endret seg, og hvis ja: ble det fattet nytt oppfølgingsvedtak?",
-
+  "— Har aktivitetene blitt evaluert sammen med brukeren?",
+  "— Har mål/situasjon endret seg og nytt vedtak blitt fattet?",
   // Del 3 (10)
-  "Har brukermøtene vært planlagte og forberedte?",
-  "— Er møteagenda delt med brukeren i forkant slik at han/hun kan komme med innspill?",
-  "— Brukes aktivitetsplanen som et samhandlingsverktøy i oppfølgingen?",
-  "— Har du vurdert om personen kan/vil være digital underveis, og har du tilpasset samhandlingen?",
-  "— Inneholder samtalereferatene tydelige avtaler om hvem som skal gjøre hva til neste møte?",
-  "Har brukeren fått medvirke i hvordan dere skal samarbeide i oppfølgingen?",
-  "— Blir personens ønsker og behov ivaretatt?",
-  "— Har brukeren fått informasjon om målet med oppfølgingen og samarbeidet med veileder/Nav?",
-  "— Er det gjennomført fysiske møter når det er nødvendig og/eller brukeren ønsker det?",
-  "— Har brukeren medvirket i valg av tiltak/aktivitet?",
-
+  "Har brukermøtene vært planlagte?",
+  "— Er møteagenda delt med brukeren?",
+  "— Brukes aktivitetsplanen i oppfølgingen?",
+  "— Har du vurdert digital oppfølging?",
+  "— Inneholder referater tydelige avtaler?",
+  "Har brukeren fått medvirke i samarbeidet?",
+  "— Blir ønsker og behov ivaretatt?",
+  "— Har brukeren fått informasjon om målet?",
+  "— Er det gjennomført fysiske møter?",
+  "— Har brukeren medvirket i valg av tiltak?",
   // Del 4 (3)
-  "Har den unge fått informasjon om ungdomsgarantien? (Beskriv kort i kommentar)",
-  "Har den unge hatt brudd i oppfølgingen/veilederbytte? (Hvis ja, beskriv overgang til ny kontaktperson i kommentar)",
-  "Er det jobbet med å gi den unge raskt målrettede aktiviteter mot arbeid og/eller utdanning? (Beskriv kort i kommentar)"
+  "Har den unge fått informasjon om ungdomsgarantien?",
+  "Har den unge hatt brudd i oppfølgingen?",
+  "Er det jobbet med å gi den unge målrettede aktiviteter?"
 ];
 
 /* === Blokker === */
 const blocks = {
-  "Bli kjent og forstå behov": Array.from({length: 8}, (_,i) => i),          // 0–7
-  "Arbeidsretting og fremdrift": Array.from({length: 15}, (_,i) => i + 8),  // 8–22
-  "Brukermedvirkning": Array.from({length: 10}, (_,i) => i + 23),           // 23–32
-  "Ungdomsgaranti (U30)": Array.from({length: 3}, (_,i) => i + 33)          // 33–35
+  "Bli kjent og forstå behov": Array.from({length:8},(_,i)=>i),
+  "Arbeidsretting og fremdrift": Array.from({length:15},(_,i)=>i+8),
+  "Brukermedvirkning": Array.from({length:10},(_,i)=>i+23),
+  "Ungdomsgaranti (U30)": Array.from({length:3},(_,i)=>i+33)
 };
 
 let allAnswers = [];
 let resultChart = null;
+let answers=[];
 
-/* === Statuslogikk === */
-function getBlockStatus(ja, nei, usikker) {
-  if (nei > ja && nei >= usikker) return '<span class="red">Rød</span>';
-  if (usikker > ja && usikker >= nei) return '<span class="yellow">Gul</span>';
-  if (ja > nei && ja > usikker) return '<span class="green">Grønn</span>';
-  return '<span class="yellow">Gul</span>'; // fallback ved likt
-}
-
-/* === Spørsmål === */
-function renderQuestions() {
-  const container = document.getElementById('questions');
-  container.innerHTML = '';
-  questions.forEach((q, i) => {
-    const div = document.createElement('div');
-    div.className = 'question';
-    div.innerHTML = `
-      <p><strong>${i+1}. ${q}</strong></p>
-      <label><input type="radio" name="q${i}" value="Ja"> Ja</label>
-      <label><input type="radio" name="q${i}" value="Nei"> Nei</label>
-      <label><input type="radio" name="q${i}" value="Usikker"> Usikker</label>
-      <br/>
-      <input type="text" placeholder="Kommentar" id="comment${i}" style="width: 80%; margin-top: 6px;" />
-    `;
-    container.appendChild(div);
+/* Render spørsmål */
+function renderQuestions(){
+  const qDiv=document.getElementById("questions");
+  qDiv.innerHTML="";
+  questions.forEach((q,i)=>{
+    qDiv.innerHTML+=`
+      <div class="question" id="q${i}">
+        <strong>${i+1}. ${q}</strong><br>
+        <button class="answer-btn answer-ja" onclick="setAnswer(${i},'Ja',this)">Ja</button>
+        <button class="answer-btn answer-nei" onclick="setAnswer(${i},'Nei',this)">Nei</button>
+        <button class="answer-btn answer-usikker" onclick="setAnswer(${i},'Usikker',this)">Usikker</button>
+      </div>`;
   });
 }
+function setAnswer(i,val,btn){
+  answers[i]=val;
+  document.querySelectorAll(`#q${i} .answer-btn`).forEach(b=>b.classList.remove("selected"));
+  btn.classList.add("selected");
+}
 
-/* === Lagring === */
-function saveData() {
-  const username = document.getElementById('username').value || 'Ukjent bruker';
-  let userAnswers = [];
+/* Lagre */
+function saveData(){
+  const username=document.getElementById("username").value||"Ukjent";
+  const userAnswers=questions.map((q,i)=>({question:q,answer:answers[i]||""}));
+  allAnswers.push({user:username,answers:userAnswers});
+  renderChartAndBlocks();
+  document.getElementById("username").value="";
+  answers=[];
+  renderQuestions();
+}
 
-  questions.forEach((q, i) => {
-    const radios = document.getElementsByName('q' + i);
-    let selected = '';
-    radios.forEach(r => { if (r.checked) selected = r.value; });
-    const comment = document.getElementById('comment' + i).value || '';
-    userAnswers.push({ user: username, index: i+1, question: q, answer: selected, comment: comment });
+/* Graf + blokker (samlet for alle brukere) */
+function renderChartAndBlocks(){
+  const counts={Ja:0,Nei:0,Usikker:0};
+  allAnswers.forEach(u=>{
+    u.answers.forEach(a=>{ if(a.answer) counts[a.answer]++; });
+  });
+  const ctx=document.getElementById("resultChart").getContext("2d");
+  if(resultChart) resultChart.destroy();
+  resultChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:["Ja","Nei","Usikker"],datasets:[{data:[counts.Ja,counts.Nei,counts.Usikker],backgroundColor:["#28a745","#dc3545","#ffc107"]}]},
+    options:{responsive:false,plugins:{legend:{display:false}}}
   });
 
-  allAnswers.push({ user: username, answers: userAnswers });
-
-  updateDashboard();
-  alert("Svar lagret for " + username);
-  document.getElementById("answerForm").reset();
-}
-
-function resetForm() {
-  document.getElementById("answerForm").reset();
-  document.getElementById("username").value = "";
-  alert("Skjema nullstilt – klar for ny bruker!");
-}
-
-/* === Dashboard === */
-function updateDashboard() {
-  const display = document.getElementById('userDisplay');
-  display.innerHTML = "<h3>Registrerte brukere:</h3><ul>" +
-    allAnswers.map((u, idx) => `<li><a href="#" onclick="showUser(${idx})">${u.user}</a></li>`).join('') +
-    "</ul>";
-
-  if (allAnswers.length > 0) {
-    showUser(allAnswers.length-1); // vis siste bruker
-    renderBlockSummaryAll();       // vis samlet oppsummering
-  }
-}
-
-function showUser(index) {
-  const user = allAnswers[index];
-  if (!user) return;
-  renderChart(user.answers);
-  renderBlockSummaryUser(user);
-}
-
-function renderChart(answers) {
-  const counts = { Ja:0, Nei:0, Usikker:0 };
-  answers.forEach(a => { if (a.answer) counts[a.answer]++; });
-
-  const ctx = document.getElementById('resultChart').getContext('2d');
-  if (resultChart) resultChart.destroy();
-
-  resultChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Ja (Grønn)', 'Nei (Rød)', 'Usikker (Gul)'],
-      datasets: [{ data: [counts.Ja, counts.Nei, counts.Usikker], backgroundColor: ['#28a745','#dc3545','#ffc107'] }]
-    },
-    options: { responsive: true, plugins: { legend: { display: false } } }
-  });
-}
-
-/* === Oppsummering === */
-function renderBlockSummaryUser(user) {
-  let summaryHtml = `<h3>Oppsummering per blokk (${user.user})</h3>`;
-  for (const [block, indices] of Object.entries(blocks)) {
-    let ja=0, nei=0, usikker=0;
-    indices.forEach(i => {
-      const a = user.answers[i];
-      if (!a) return;
-      if (a.answer === 'Ja') ja++;
-      else if (a.answer === 'Nei') nei++;
-      else if (a.answer === 'Usikker') usikker++;
-    });
-    summaryHtml += `<p><strong>${block}:</strong> ${getBlockStatus(ja,nei,usikker)} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
-  }
-  document.getElementById('blockSummary').innerHTML = summaryHtml;
-}
-
-function renderBlockSummaryAll() {
-  let summaryHtml = "<h3>Oppsummering per blokk (alle brukere)</h3>";
-  for (const [block, indices] of Object.entries(blocks)) {
-    let ja=0, nei=0, usikker=0;
-    allAnswers.forEach(user => {
-      indices.forEach(i => {
-        const a = user.answers[i];
-        if (!a) return;
-        if (a.answer === 'Ja') ja++;
-        else if (a.answer === 'Nei') nei++;
-        else if (a.answer === 'Usikker') usikker++;
+  let html="<h4>Oppsummering per blokk (alle brukere)</h4>";
+  for(const [block,idxs] of Object.entries(blocks)){
+    let ja=0,nei=0,usikker=0;
+    allAnswers.forEach(u=>{
+      idxs.forEach(i=>{
+        if(u.answers[i].answer==="Ja") ja++;
+        if(u.answers[i].answer==="Nei") nei++;
+        if(u.answers[i].answer==="Usikker") usikker++;
       });
     });
-    summaryHtml += `<p><strong>${block}:</strong> ${getBlockStatus(ja,nei,usikker)} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+    let total=ja+nei+usikker;
+    let statusClass="yellow";
+    if(ja>nei && ja>usikker) statusClass="green";
+    else if(nei>ja && nei>=usikker) statusClass="red";
+
+    html+=`
+      <p><span class="status-circle ${statusClass}"></span>
+      <b>${block}:</b> Totalt: ${total} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
   }
-  document.getElementById('allSummary').innerHTML = summaryHtml;
+  document.getElementById("allSummary").innerHTML=html;
 }
 
-/* === Eksport === */
-function exportCSV() {
-  let csv = 'Bruker,Spørsmålsnr,Spørsmål,Svar,Kommentar\n';
-  allAnswers.forEach(user => {
-    user.answers.forEach(a => {
-      const esc = (t) => `"${String(t).replace(/"/g,'""')}"`;
-      csv += `${esc(user.user)},${a.index},${esc(a.question)},${esc(a.answer)},${esc(a.comment)}\n`;
+/* Eksport CSV */
+function exportCSV(){
+  let csv="Bruker,Spørsmål,Svar\n";
+  allAnswers.forEach(u=>{
+    u.answers.forEach(a=>{
+      csv+=`${u.user},"${a.question}",${a.answer}\n`;
     });
   });
-  document.getElementById('csvPreview').textContent = csv;
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'kvalitetssystem-ungdom.csv';
+  const blob=new Blob([csv],{type:"text/csv"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download="resultater.csv";
   link.click();
 }
 
-function showTab(evt, tab) {
-  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-  document.getElementById(tab).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  evt.target.classList.add('active');
+/* Eksport PDF – 3x større + 2 cm margin */
+async function exportPDF(){
+  const { jsPDF }=window.jspdf;
+  const element=document.getElementById("dashboard");
+  const canvas=await html2canvas(element,{scale:3});
+  const imgData=canvas.toDataURL("image/png");
+  const pdf=new jsPDF("p","mm","a4");
+  const pdfWidth=pdf.internal.pageSize.getWidth()-20; // 2 cm margin
+  const pdfHeight=(canvas.height*pdfWidth)/canvas.width;
+  pdf.addImage(imgData,"PNG",20,10,pdfWidth,pdfHeight); // flyttet 20mm til høyre
+  pdf.save("resultater.pdf");
 }
 
-// Init
 renderQuestions();
 </script>
 </body>
