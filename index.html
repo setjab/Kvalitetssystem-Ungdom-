@@ -45,10 +45,18 @@
     .export-btn { padding:10px 14px; background:#189; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; margin-right:8px; }
     #userList { margin-top:12px; background:#fff; padding:10px; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
     .block-summary { margin-top:12px; padding:12px; background:#f8f9ff; border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-    .status-circle { display:inline-block; width:40px; height:40px; border-radius:50%; margin-right:10px; vertical-align:middle; }
-    .green { background:#28a745; }
-    .red { background:#dc3545; }
-    .yellow { background:#ffc107; }
+
+    .block-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .block-row canvas {
+      width: 100px !important;
+      height: 100px !important;
+      margin-right: 14px;
+    }
+
     footer { margin-top:18px; font-size:13px; color:#666; text-align:center; }
   </style>
 </head>
@@ -77,6 +85,11 @@
 <div style="margin-top:12px;">
   <button class="export-btn" onclick="exportCSV()">⬇ Last ned CSV</button>
   <button class="export-btn" onclick="exportPDF()">📄 Last ned PDF</button>
+  <button class="export-btn" onclick="exportJSON()">🗂️ Last ned JSON</button>
+  <label class="export-btn" style="cursor:pointer;">
+    📤 Last opp JSON
+    <input type="file" id="jsonFileInput" accept=".json" style="display:none" onchange="importJSON(event)" />
+  </label>
 </div>
 
 <footer>Utviklet av Settar Al-Jabri</footer>
@@ -137,6 +150,7 @@ const blocks = {
 let answers = [];
 let allAnswers = [];
 let resultChart = null;
+let blockCharts = {}; // for mini-pai
 
 function renderQuestions(){
   const div=document.getElementById('questions');
@@ -193,13 +207,33 @@ function renderChartAndBlocks(){
     });
     const total=ja+nei+usikker;
 
-    let statusClass='yellow';
-    if (ja >= nei && ja >= usikker) statusClass='green';
-    else if (nei >= ja && nei >= usikker) statusClass='red';
-    else if (usikker >= ja && usikker >= nei) statusClass='yellow';
+    // Lag canvas for pai
+    const canvasId = "pie_"+block.replace(/\s+/g,'_');
+    html+=`
+      <div class="block-row">
+        <canvas id="${canvasId}"></canvas>
+        <div><b>${block}:</b> Totalt ${total} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</div>
+      </div>
+    `;
 
-    html+=`<p><span class="status-circle ${statusClass}"></span>
-           <b>${block}:</b> Totalt ${total} (Ja:${ja}, Nei:${nei}, Usikker:${usikker})</p>`;
+    setTimeout(()=>{
+      const ctx=document.getElementById(canvasId).getContext("2d");
+      if(blockCharts[canvasId]) blockCharts[canvasId].destroy();
+      blockCharts[canvasId]=new Chart(ctx,{
+        type:'doughnut',
+        data:{
+          labels:["Ja","Nei","Usikker"],
+          datasets:[{
+            data:[ja,nei,usikker],
+            backgroundColor:['#4caf50','#e53935','#fbc02d']
+          }]
+        },
+        options:{
+          plugins:{legend:{display:false}},
+          cutout:'50%'
+        }
+      });
+    },50);
   }
   document.getElementById('allSummary').innerHTML=html;
 }
@@ -215,6 +249,34 @@ async function exportPDF(){
   const pdf=new jsPDF("p","mm","a4"); const marginLeft=20; const pdfWidth=pdf.internal.pageSize.getWidth()-marginLeft;
   const pdfHeight=(canvas.height*pdfWidth)/canvas.width;
   pdf.addImage(imgData,"PNG",marginLeft,10,pdfWidth,pdfHeight); pdf.save("resultater.pdf");
+}
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(allAnswers,null,2)],{type:"application/json"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "resultater.json";
+  link.click();
+}
+function importJSON(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(Array.isArray(data)){
+        allAnswers = data;
+        renderUserList();
+        renderChartAndBlocks();
+        alert("JSON-data lastet inn ✅");
+      } else {
+        alert("Ugyldig JSON-format ❌");
+      }
+    } catch(err){
+      alert("Feil ved lesing av JSON: "+err);
+    }
+  };
+  reader.readAsText(file);
 }
 renderQuestions(); renderEmptyDashboard();
 </script>
